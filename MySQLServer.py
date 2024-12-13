@@ -1,34 +1,37 @@
-import mysql.connector
-from mysql.connector import errorcode
+import mysql.connector # type: ignore
+from mysql.connector import errorcode # type: ignore
 
-def create_database():
+def create_database(cursor):
     try:
-        # الاتصال بخادم MySQL بدون تحديد قاعدة بيانات
+        cursor.execute(
+            "CREATE DATABASE IF NOT EXISTS alx_book_store"
+        )
+        print("Database 'alx_book_store' created successfully!")
+    except mysql.connector.Error as err:
+        print(f"Failed creating database: {err}")
+        exit(1)
+
+def main():
+    try:
         connection = mysql.connector.connect(
-            host="localhost",
-            user="your_username",     # استبدل باسم المستخدم الخاص بك
-            password="your_password"  # استبدل بكلمة المرور الخاصة بك
+            user='your_username', 
+            password='your_password',
+            host='your_host',
+            port='your_port'
         )
         cursor = connection.cursor()
-
-        # إنشاء قاعدة البيانات إذا لم تكن موجودة
-        cursor.execute("CREATE DATABASE IF NOT EXISTS alx_book_store")
-        print("Database 'alx_book_store' created successfully!")
+        create_database(cursor)
 
     except mysql.connector.Error as err:
-        # التعامل مع الأخطاء بشكل مفصل
-        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-            print("Error: Invalid username or password.")
-        elif err.errno == errorcode.ER_BAD_DB_ERROR:
-            print("Error: Database does not exist.")
+        if err.error_num == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("access denied")
+        elif err.error_num == errorcode.ER_BAD_DB_ERROR:
+            print("Database does not exist")
         else:
-            print(f"Error: {err}")
-    finally:
-        # التأكد من إغلاق الموارد
-        if 'cursor' in locals():
-            cursor.close()
-        if 'connection' in locals():
-            connection.close()
+            print(err)
+    else:
+        cursor.close()
+        connection.close()
 
 if __name__ == "__main__":
-    create_database()
+    main()
